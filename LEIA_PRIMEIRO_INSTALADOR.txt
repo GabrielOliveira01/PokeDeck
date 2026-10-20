@@ -1,0 +1,22 @@
+POKEDECK 4 PREMIUM ECO v2.4
+===========================
+
+ESTE ZIP CONTEM O CODIGO-FONTE E A CONFIGURACAO DO INSTALADOR.
+NAO E O PROGRAMA WINDOWS JA COMPILADO.
+
+USUARIOS FINAIS:
+  - Baixam o PokeDeck4-Premium-Eco-Setup-2.4.0-x64.exe quando compilado.
+  - Instalacao por dois cliques, com icone, menu Iniciar e atalho.
+  - NAO precisam instalar Node.js, nem executar arquivos .bat.
+
+COMO GERAR O INSTALADOR SEM NODE NO COMPUTADOR:
+  1. Envie o conteudo desta pasta para um repositorio no GitHub.
+  2. Inclua a pasta .github e todos os arquivos.
+  3. Clique Actions > Instalador Windows PokeDeck 4 > Run workflow.
+  4. Ao concluir, baixe o artefato PokeDeck4-Instalador-Windows.
+  5. Distribua apenas o arquivo Setup .exe que estiver no artefato.
+
+ATENCAO: esta compilacao depende do GitHub Actions e ainda nao foi
+executada aqui. O instalador nao esta assinado digitalmente.
+
+Leia README.md para recursos, limitacoes de playback e bonus Twitch/Kick.

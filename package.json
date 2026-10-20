@@ -1,0 +1,51 @@
+{
+  "name": "pokedeck4",
+  "productName": "PokeDeck 4",
+  "version": "2.4.0",
+  "description": "PokeDeck 4 Premium Eco com 4 contas isoladas, lives persistentes em abas, troca de login Google e instalador Windows",
+  "main": "src/main.js",
+  "author": "Projeto independente",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node --check src/stream-url.js && node --check src/google-auth-reset.js && node --test tests/*.test.js",
+    "dist:win": "electron-builder --win nsis --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "br.independente.pokedeck4",
+    "productName": "PokeDeck 4",
+    "asar": true,
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/pokedeck4.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PokeDeck 4",
+      "uninstallDisplayName": "PokeDeck 4 Premium Eco"
+    },
+    "artifactName": "PokeDeck4-Premium-Eco-Setup-${version}-${arch}.${ext}"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

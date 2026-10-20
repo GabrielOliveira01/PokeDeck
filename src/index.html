@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
+<title>PokeDeck 4 · Premium Eco</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="identity"><div class="brand-icon" aria-hidden="true"><span class="brand-center"></span></div><div class="identity-text"><div class="brand-name">Poke<span>Deck</span><strong>4</strong></div><div class="brand-subtitle">MULTISESSION · PREMIUM ECO</div></div><span class="version">v2.4</span></div>
+    <div class="toolbar">
+      <button id="live-background-toggle" class="live-background-button enabled" type="button" aria-pressed="true" title="Priorizar lives em segundo plano: mais recursos utilizados"><span class="stream-symbol">◉</span><span class="live-value">LIVES CONTÍNUAS</span></button>
+      <button id="economy-toggle" class="eco-button enabled" type="button" aria-pressed="true" title="Alternar economia"><span class="leaf-symbol">✦</span><span class="economy-value">ECO LIGADO</span></button>
+      <div class="view-modes" aria-label="Exibição das contas">
+        <button type="button" class="mode active" data-mode="grid" aria-pressed="true"><span class="layout-icon">▦</span><span>4 CONTAS</span></button>
+        <button type="button" class="mode" data-mode="1" aria-pressed="false">01</button>
+        <button type="button" class="mode" data-mode="2" aria-pressed="false">02</button>
+        <button type="button" class="mode" data-mode="3" aria-pressed="false">03</button>
+        <button type="button" class="mode" data-mode="4" aria-pressed="false">04</button>
+      </div>
+
+    </div>
+  </header>
+  <div class="info-strip">
+    <div class="info-primary"><span class="small-dot"></span><span id="economy-detail">Otimização ativada · contas ocultas podem reduzir atividade</span></div>
+    <div class="resource-stats" aria-label="Consumo estimado do PokeDeck"><span>RAM APP <b id="ram-value">—</b></span><span>CPU APP <b id="cpu-value">—</b></span></div>
+  </div>
+  <div id="live-hint" class="live-hint"><span class="live-pulse"></span><strong>LIVES INTEGRADAS</strong><span>Cada clique abre sua própria aba · outras lives permanecem carregadas.</span><span class="hint-eco"><span id="open-live-count">0 LIVES ABERTAS</span></span></div>
+  <div id="app-notice" class="app-notice" hidden></div>
+  <main id="cards" class="cards grid-mode">
+    <section class="account-card" data-account="1">
+      <div class="card-top">
+        <div class="account-name"><span class="account-index">01</span><div><strong>Conta principal</strong><small class="account-status" data-status="1"><span class="status-dot"></span>Iniciando</small></div></div>
+        <div class="account-actions">
+          <button type="button" class="icon-button" data-park="1" title="Descansar painel sem sair da conta" aria-label="Alternar repouso da conta 1">☾</button>
+          <button type="button" class="icon-button mute-button " data-mute="1" title="Ativar/desativar som" aria-label="Alternar áudio da conta 1">♫</button>
+          <button type="button" class="icon-button google-reset-button" data-google-reset="1" title="Trocar conta Google neste painel sem apagar o login do PokeIdle" aria-label="Redefinir login Google da conta 1"><span>G</span><sup>↻</sup></button>
+          <button type="button" class="icon-button" data-reload="1" title="Recarregar somente esta conta" aria-label="Recarregar conta 1">↻</button>
+          <button type="button" class="icon-button focus-button" data-focus="1" title="Ampliar conta" aria-label="Ampliar conta 1">⛶</button>
+        </div>
+      </div>
+      <nav class="panel-tabs" data-tabs="1" aria-label="Abas da conta 1"><button type="button" class="panel-tab game-tab current">◆ JOGO</button></nav>
+      <div class="viewport" id="viewport-1"><span class="loading-text">PREPARANDO SESSÃO...</span><div class="park-message"><span class="moon">☾</span><b>PAINEL EM REPOUSO</b><span>Conta aberta, renderização reduzida.<br>Use ☾ para reativar.</span></div></div>
+    </section>
+    <section class="account-card" data-account="2">
+      <div class="card-top">
+        <div class="account-name"><span class="account-index">02</span><div><strong>Conta secundária</strong><small class="account-status" data-status="2"><span class="status-dot"></span>Iniciando</small></div></div>
+        <div class="account-actions">
+          <button type="button" class="icon-button" data-park="2" title="Descansar painel sem sair da conta" aria-label="Alternar repouso da conta 2">☾</button>
+          <button type="button" class="icon-button mute-button muted" data-mute="2" title="Ativar/desativar som" aria-label="Alternar áudio da conta 2">♪̸</button>
+          <button type="button" class="icon-button google-reset-button" data-google-reset="2" title="Trocar conta Google neste painel sem apagar o login do PokeIdle" aria-label="Redefinir login Google da conta 2"><span>G</span><sup>↻</sup></button>
+          <button type="button" class="icon-button" data-reload="2" title="Recarregar somente esta conta" aria-label="Recarregar conta 2">↻</button>
+          <button type="button" class="icon-button focus-button" data-focus="2" title="Ampliar conta" aria-label="Ampliar conta 2">⛶</button>
+        </div>
+      </div>
+      <nav class="panel-tabs" data-tabs="2" aria-label="Abas da conta 2"><button type="button" class="panel-tab game-tab current">◆ JOGO</button></nav>
+      <div class="viewport" id="viewport-2"><span class="loading-text">PREPARANDO SESSÃO...</span><div class="park-message"><span class="moon">☾</span><b>PAINEL EM REPOUSO</b><span>Conta aberta, renderização reduzida.<br>Use ☾ para reativar.</span></div></div>
+    </section>
+    <section class="account-card" data-account="3">
+      <div class="card-top">
+        <div class="account-name"><span class="account-index">03</span><div><strong>Terceira conta</strong><small class="account-status" data-status="3"><span class="status-dot"></span>Iniciando</small></div></div>
+        <div class="account-actions">
+          <button type="button" class="icon-button" data-park="3" title="Descansar painel sem sair da conta" aria-label="Alternar repouso da conta 3">☾</button>
+          <button type="button" class="icon-button mute-button muted" data-mute="3" title="Ativar/desativar som" aria-label="Alternar áudio da conta 3">♪̸</button>
+          <button type="button" class="icon-button google-reset-button" data-google-reset="3" title="Trocar conta Google neste painel sem apagar o login do PokeIdle" aria-label="Redefinir login Google da conta 3"><span>G</span><sup>↻</sup></button>
+          <button type="button" class="icon-button" data-reload="3" title="Recarregar somente esta conta" aria-label="Recarregar conta 3">↻</button>
+          <button type="button" class="icon-button focus-button" data-focus="3" title="Ampliar conta" aria-label="Ampliar conta 3">⛶</button>
+        </div>
+      </div>
+      <nav class="panel-tabs" data-tabs="3" aria-label="Abas da conta 3"><button type="button" class="panel-tab game-tab current">◆ JOGO</button></nav>
+      <div class="viewport" id="viewport-3"><span class="loading-text">PREPARANDO SESSÃO...</span><div class="park-message"><span class="moon">☾</span><b>PAINEL EM REPOUSO</b><span>Conta aberta, renderização reduzida.<br>Use ☾ para reativar.</span></div></div>
+    </section>
+    <section class="account-card" data-account="4">
+      <div class="card-top">
+        <div class="account-name"><span class="account-index">04</span><div><strong>Quarta conta</strong><small class="account-status" data-status="4"><span class="status-dot"></span>Iniciando</small></div></div>
+        <div class="account-actions">
+          <button type="button" class="icon-button" data-park="4" title="Descansar painel sem sair da conta" aria-label="Alternar repouso da conta 4">☾</button>
+          <button type="button" class="icon-button mute-button muted" data-mute="4" title="Ativar/desativar som" aria-label="Alternar áudio da conta 4">♪̸</button>
+          <button type="button" class="icon-button google-reset-button" data-google-reset="4" title="Trocar conta Google neste painel sem apagar o login do PokeIdle" aria-label="Redefinir login Google da conta 4"><span>G</span><sup>↻</sup></button>
+          <button type="button" class="icon-button" data-reload="4" title="Recarregar somente esta conta" aria-label="Recarregar conta 4">↻</button>
+          <button type="button" class="icon-button focus-button" data-focus="4" title="Ampliar conta" aria-label="Ampliar conta 4">⛶</button>
+        </div>
+      </div>
+      <nav class="panel-tabs" data-tabs="4" aria-label="Abas da conta 4"><button type="button" class="panel-tab game-tab current">◆ JOGO</button></nav>
+      <div class="viewport" id="viewport-4"><span class="loading-text">PREPARANDO SESSÃO...</span><div class="park-message"><span class="moon">☾</span><b>PAINEL EM REPOUSO</b><span>Conta aberta, renderização reduzida.<br>Use ☾ para reativar.</span></div></div>
+    </section>
+  </main>
+  <footer class="footer"><span>POKEDECK 4 <i>·</i> PREMIUM ECO v2.4</span><span>Reprodução em segundo plano e bônus dependem de Twitch, Kick e PokeIdle.</span><span>4 PERFIS ISOLADOS</span></footer>
+</div>
+<script src="renderer.js"></script>
+</body>
+</html>
