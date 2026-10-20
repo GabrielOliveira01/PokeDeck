@@ -1,0 +1,30 @@
+name: Instalador Windows PokeDeck 4
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+permissions:
+  contents: read
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v4
+      - name: Preparar Node APENAS na compilação
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependências para gerar instalador
+        run: npm install --no-audit --no-fund
+      - name: Rodar testes
+        run: npm run check
+      - name: Gerar instalador autossuficiente
+        run: npm run dist:win
+      - name: Disponibilizar Setup para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: PokeDeck4-Instalador-Windows
+          path: dist/*Setup*.exe
+          if-no-files-found: error
