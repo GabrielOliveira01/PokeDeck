@@ -4,9 +4,11 @@ const api = window.pokeDeck;
 const cards = document.getElementById('cards');
 const economyButton = document.getElementById('economy-toggle');
 const backgroundButton = document.getElementById('live-background-toggle');
+const allPanelsButton = document.getElementById('all-panels-toggle');
 let currentMode = 'grid';
+let modeBeforeImmersive = null;
 let lastBounds = '';
-let latestState = { economy: true, keepLiveBackground: true, streams: [], accounts: [] };
+let latestState = { economy: true, keepLiveBackground: true, streams: [], accounts: [], immersiveAccountId: null, allParked: false };
 let requested = false;
 let lastStreamIds = new Set();
 
@@ -31,6 +33,7 @@ function requestLayout() {
 }
 function changeMode(mode) {
   if (mode !== 'grid' && !['1', '2', '3', '4'].includes(String(mode))) return;
+  if (latestState.immersiveAccountId !== null && mode !== String(latestState.immersiveAccountId)) return;
   currentMode = String(mode);
   cards.classList.toggle('grid-mode', currentMode === 'grid');
   cards.classList.toggle('focus-mode', currentMode !== 'grid');
@@ -44,10 +47,21 @@ function changeMode(mode) {
   });
   document.querySelectorAll('[data-focus]').forEach(button => {
     const focused = button.dataset.focus === currentMode;
-    button.textContent = focused ? '▦' : '⛶';
-    button.title = focused ? 'Mostrar as quatro contas' : 'Maximizar conta';
+    button.textContent = focused ? '▦' : '▣';
+    button.title = focused ? 'Mostrar as quatro contas' : 'Destacar esta conta';
   });
+  if (latestState.accounts.length) updateParkLabels();
   lastBounds = ''; requestLayout();
+}
+function updateParkLabels() {
+  const grid = currentMode === 'grid';
+  for (const account of latestState.accounts) {
+    const button = document.querySelector(`[data-park="${account.id}"]`);
+    if (!button) continue;
+    button.title = grid ? (latestState.allParked ? 'Mostrar as 4 contas' : 'Ocultar as 4 contas') :
+      (account.parked ? 'Mostrar esta conta' : 'Ocultar esta conta');
+    button.setAttribute('aria-label', button.title);
+  }
 }
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -87,7 +101,20 @@ function buildTabs(account, streams) {
 }
 function drawState(state) {
   if (!state) return;
+  const enteringImmersive = state.immersiveAccountId !== null;
+  if (enteringImmersive && modeBeforeImmersive === null) modeBeforeImmersive = currentMode;
   latestState = state;
+  document.body.classList.toggle('immersive-mode', enteringImmersive);
+  if (enteringImmersive) changeMode(state.immersiveAccountId);
+  else if (modeBeforeImmersive !== null) {
+    const previousMode = modeBeforeImmersive;
+    modeBeforeImmersive = null;
+    changeMode(previousMode);
+  }
+  allPanelsButton.classList.toggle('is-parked', state.allParked);
+  allPanelsButton.setAttribute('aria-pressed', String(state.allParked));
+  allPanelsButton.querySelector('.all-panels-label').textContent = state.allParked ? 'MOSTRAR 4' : 'OCULTAR 4';
+  allPanelsButton.querySelector('.all-panels-icon').textContent = state.allParked ? '▶' : '☾';
   economyButton.classList.toggle('enabled', state.economy);
   economyButton.classList.toggle('disabled', !state.economy);
   economyButton.setAttribute('aria-pressed', String(state.economy));
@@ -128,10 +155,11 @@ function drawState(state) {
     card.classList.toggle('live-card', account.selectedTab !== 'game');
     buildTabs(account, ownStreams);
   }
+  updateParkLabels();
   // A newly clicked live receives a NEW tab; focus its originating account.
   const ids = new Set(state.streams.map(stream => stream.tabId));
   const newest = state.streams.find(stream => !lastStreamIds.has(stream.tabId));
-  if (newest) changeMode(newest.id);
+  if (newest && !enteringImmersive) changeMode(newest.id);
   lastStreamIds = ids;
   lastBounds = ''; requestLayout();
 }
@@ -142,6 +170,15 @@ for (const button of document.querySelectorAll('[data-mode]')) {
 for (const button of document.querySelectorAll('[data-focus]')) {
   button.addEventListener('click', () => changeMode(currentMode === button.dataset.focus ? 'grid' : button.dataset.focus));
 }
+for (const button of document.querySelectorAll('[data-fullscreen]')) {
+  button.addEventListener('click', () => api.enterImmersive(Number(button.dataset.fullscreen)));
+}
+allPanelsButton.addEventListener('click', () => api.toggleParkAll());
+window.addEventListener('keydown', event => {
+  if (latestState.immersiveAccountId !== null && (event.key === 'Escape' || event.key === 'F11')) {
+    event.preventDefault(); api.exitImmersive();
+  }
+});
 for (const button of document.querySelectorAll('[data-google-reset]')) {
   button.addEventListener('click', async () => {
     const id = Number(button.dataset.googleReset);
@@ -158,7 +195,7 @@ for (const button of document.querySelectorAll('[data-mute]')) {
   button.addEventListener('click', () => api.toggleMute(Number(button.dataset.mute)));
 }
 for (const button of document.querySelectorAll('[data-park]')) {
-  button.addEventListener('click', () => api.togglePark(Number(button.dataset.park)));
+  button.addEventListener('click', () => currentMode === 'grid' ? api.toggleParkAll() : api.togglePark(Number(button.dataset.park)));
 }
 economyButton.addEventListener('click', () => api.setEconomy(!latestState.economy));
 backgroundButton.addEventListener('click', () => api.setKeepLiveBackground(!latestState.keepLiveBackground));

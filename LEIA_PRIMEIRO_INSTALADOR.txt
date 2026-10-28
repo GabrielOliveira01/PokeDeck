@@ -1,11 +1,11 @@
-POKEDECK 4 PREMIUM ECO v2.4
+POKEDECK 4 PREMIUM ECO v2.5
 ===========================
 
 ESTE ZIP CONTEM O CODIGO-FONTE E A CONFIGURACAO DO INSTALADOR.
 NAO E O PROGRAMA WINDOWS JA COMPILADO.
 
 USUARIOS FINAIS:
-  - Baixam o PokeDeck4-Premium-Eco-Setup-2.4.0-x64.exe quando compilado.
+  - Baixam o PokeDeck4-Premium-Eco-Setup-2.5.0-x64.exe quando compilado.
   - Instalacao por dois cliques, com icone, menu Iniciar e atalho.
   - NAO precisam instalar Node.js, nem executar arquivos .bat.
 
@@ -20,3 +20,5 @@ ATENCAO: esta compilacao depende do GitHub Actions e ainda nao foi
 executada aqui. O instalador nao esta assinado digitalmente.
 
 Leia README.md para recursos, limitacoes de playback e bonus Twitch/Kick.
+
+ATUALIZAÇÃO v2.5: tela cheia individual (Esc ou F11 para sair), ocultar as quatro contas e lives novas mutadas por padrão. Publique como nova Release v2.5.0.

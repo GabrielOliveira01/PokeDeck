@@ -1,10 +1,10 @@
-# PokeDeck 4 Premium Eco — v2.4 · Múltiplas lives em abas
+# PokeDeck 4 Premium Eco — v2.5 · Tela cheia e controle de painéis
 
 Aplicativo **independente e não oficial** para Windows com quatro perfis do [PokeIdle](https://pokeidle.io/app), cookies separados, interface premium e Twitch/Kick capturados diretamente dos cliques no jogo.
 
 ## Para quem recebe o aplicativo pronto (SEM Node.js)
 
-Distribua o arquivo **`PokeDeck4-Premium-Eco-Setup-2.4.0-x64.exe`**, que deve ser GERADO pela etapa de compilação descrita abaixo. Ele já inclui o Electron/Chromium, dependências e código do aplicativo; o usuário final **não precisa instalar Node.js, executar `.bat`, abrir terminal, descompactar código-fonte ou rodar `npm`**.
+Distribua o arquivo **`PokeDeck4-Premium-Eco-Setup-2.5.0-x64.exe`**, que deve ser GERADO pela etapa de compilação descrita abaixo. Ele já inclui o Electron/Chromium, dependências e código do aplicativo; o usuário final **não precisa instalar Node.js, executar `.bat`, abrir terminal, descompactar código-fonte ou rodar `npm`**.
 
 1. O usuário baixa o arquivo `...Setup-...exe` **de uma origem de confiança**.
 2. Executa o instalador, escolhe a pasta e conclui a instalação.
@@ -32,7 +32,7 @@ Para o desenvolvedor que preferir compilar localmente **em Windows**: `npm insta
 - Clique em um botão/link para uma live **dentro do próprio PokeIdle**. Se a ação abrir uma página Twitch/Kick via `window.open`, link `target=_blank` ou navegação de página, o PokeDeck captura a URL do canal e cria **uma NOVA aba LIVE no painel da conta que fez o clique**, sem janela de streaming fora do app.
 - Cada clique cria uma aba com ID próprio. É possível manter até **12 abas de lives** entre os quatro perfis para evitar abertura acidental ilimitada. Uma segunda live **não substitui a primeira**.
 - Voltar à aba **JOGO** ou navegar para outra live **não fecha nem recarrega** as lives anteriores. Seus WebContents permanecem abertos e o aplicativo solicita ao Electron que evite throttling de fundo quando `LIVES CONTÍNUAS` está ligado.
-- Cada aba de live tem **♫** para mutar/desmutar somente aquela transmissão e **×** para encerrar somente aquela transmissão, liberando seus recursos.
+- Cada live **inicia mutada automaticamente dentro do PokeDeck**, inclusive quando múltiplas transmissões são abertas. Cada aba tem **♫** para desmutar/mutar somente aquela transmissão e **×** para fechar só aquela live, liberando recursos. Isso não muda a configuração de áudio da Twitch/Kick fora do aplicativo.
 - `LIVES CONTÍNUAS` vem ativado por padrão. `ECONOMIZAR LIVES` permite que o Chromium reduza tarefas dos players ocultos; isso pode suspender reprodução em segundo plano. **ECO LIGADO** para o jogo também vem ativado por padrão.
 - Login e cookies da Twitch/Kick usam a mesma partição isolada **da conta PokeIdle que originou cada live**. O aplicativo não injeta scripts de automação no site nem manipula contadores de pontos.
 
@@ -44,11 +44,13 @@ Para o desenvolvedor que preferir compilar localmente **em Windows**: `npm insta
 
 ## Preferências e dados
 
-- `4 CONTAS / 01 / 02 / 03 / 04 / ⛶`: layout em mosaico ou conta em destaque.
+- `4 CONTAS / 01 / 02 / 03 / 04 / ▣`: layout em mosaico ou conta em destaque.
+- **⛶** no cabeçalho de cada conta: deixa **somente o jogo daquela conta em tela cheia nativa do Windows**, ocultando todas as barras, abas e outros painéis. **Esc** ou **F11** para sair. Ao sair, volta à visualização anterior. Ao abrir live durante a tela cheia, retorna ao painel automaticamente para mostrar a nova aba.
+- **OCULTAR 4 / MOSTRAR 4**: na barra superior, oculta/reativa as quatro contas de uma vez, sem fazer logout. O **☾** de qualquer painel faz a mesma coisa na visualização em grade; em foco individual, atua somente na conta selecionada.
 - **JOGO** / abas **TWITCH · canal** / **KICK · canal**: seleção das abas dentro de cada conta.
 - **LIVES CONTÍNUAS**: priorizar reprodução de lives carregadas em outras abas (ligado por padrão; maior consumo possível).
 - **ECO LIGADO**: throttling de jogo/contas inativas (ligado por padrão).
-- **☾**: ocultar o painel da conta sem fazer logout; não fecha lives.
+- **☾**: no mosaico, ocultar/reativar todas as contas; no modo individual, apenas o painel selecionado. Nenhuma ação faz logout ou fecha lives.
 - **♫** na conta: silenciar áudio do **jogo** dessa conta; **♫** em uma aba: silenciar só aquela live.
 - **↻**: recarregar aba selecionada da conta.
 - **×** na aba: encerrar somente essa live.
@@ -75,3 +77,36 @@ que o jogo recarregar, selecione **Entrar com Google** e escolha outro e-mail.
   limpar cookies. Erros como `disallowed_useragent` requerem um fluxo de login
   compatível com navegador externo provido pelo serviço de origem; o PokeDeck
   não consegue contornar essa restrição.
+
+
+## v2.5 — Tela cheia individual, ocultar 4 e lives mutadas ao abrir
+
+- Cada conta ganhou botão **⛶ Tela cheia**, independente do antigo botão de destaque **▣**.
+- Ao entrar na tela cheia, o Electron muda a janela inteira para fullscreen nativo;
+  a interface fica escondida e somente a `WebContentsView` do jogo escolhido
+  preenche a tela. Para sair, pressione **Esc** ou **F11** (o atalho é
+  interceptado também quando o foco está no próprio jogo). A sessão não é
+  recarregada e o modo anterior retorna.
+- **OCULTAR 4** na barra superior e o **☾** de qualquer painel na grade
+  ocultam todas as quatro contas de uma vez. Clique em **MOSTRAR 4** ou **▶**
+  na grade para restaurá-las. Isso NÃO fecha sessões nem streams.
+- Todas as lives novas da Twitch/Kick são mutadas via
+  `webContents.setAudioMuted(true)` já na criação, somente nesta aba do app.
+  O áudio pode ser reativado manualmente pelo botão na aba. Nenhuma configuração
+  de áudio no Windows ou no navegador externo é modificada.
+- Mantidas as partições anteriores, as quatro contas, o controle ECO e a
+  priorização das lives em segundo plano. A contabilização de bônus segue
+  dependendo do PokeIdle e do provedor.
+
+### Publicar esta versão para quem já instalou a 2.4
+
+1. Atualize o código-fonte do repositório GitHub com **o conteúdo deste ZIP**,
+   preservando os diretórios `.github`, `assets`, `src` e `tests` na raiz.
+2. Em **Actions → Instalador Windows PokeDeck 4 → Run workflow**,
+   gere o novo instalador e baixe o artefato.
+3. Publique uma **nova** Release com tag `v2.5.0` (não substitua a release
+   anterior) e anexe o **Setup `.exe`**, não o código-fonte ZIP.
+4. A pessoa baixa e executa a nova versão por cima da anterior. O projeto
+   mantém o mesmo `appId` e as mesmas partições; não está configurado para
+   apagar perfis. Recomende backup dos dados importantes antes de atualizações
+   relevantes. O instalador ainda depende de compilação em um ambiente Windows.

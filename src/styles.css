@@ -166,3 +166,38 @@ button:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
 .google-reset-button sup { position:absolute; right:1px; bottom:0px; font-size:11px; color:#79e5bc; line-height:1; }
 .google-reset-button:hover { background:#263c58; border-color:#81c0ff; }
 .google-reset-button:disabled { opacity:.4; cursor:progress; }
+
+
+/* v2.5 · Tela cheia real do jogo, ocultação global e áudio seguro das lives */
+.all-panels-button {
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;
+  padding:0 12px;border-radius:9px;border:1px solid #386b82;
+  background:linear-gradient(130deg,#173447,#13293c);color:#a6e1e7;
+  font-size:11px;font-weight:850;letter-spacing:.35px;white-space:nowrap;
+  transition:background .16s,border-color .16s;
+}
+.all-panels-button:hover { background:#234a60;border-color:#6ac3c4; }
+.all-panels-button.is-parked { background:#153b30;border-color:#44866d;color:#9cf4c9; }
+.all-panels-icon { font-size:18px;line-height:1; }
+.immersive-button { color:#92eaf4;border-color:#356c7d;background:#18394c; }
+.immersive-button:hover { color:#fff;background:#275974;border-color:#8ceefa; }
+.immersive-mode .shell { background:#050b12; }
+.immersive-mode .topbar,
+.immersive-mode .info-strip,
+.immersive-mode .live-hint,
+.immersive-mode .app-notice,
+.immersive-mode .footer,
+.immersive-mode .card-top,
+.immersive-mode .panel-tabs { display:none !important; }
+.immersive-mode .cards { padding:0;gap:0; }
+.immersive-mode .account-card { border:0;border-radius:0;box-shadow:none;background:#050b12; }
+.immersive-mode .viewport { background:#050b12; }
+@media(max-width:1300px) {
+  .all-panels-button { padding-inline:8px;font-size:10px; }
+  .account-actions { gap:2px; }
+  .icon-button { width:27px; }
+}
+@media(max-width:1060px) {
+  .all-panels-label { display:none; }
+  .all-panels-button { min-width:37px; }
+}

@@ -21,6 +21,7 @@ const authWindows = new Set();
 const authWindowOwners = new WeakMap();
 const googleResetInProgress = new Set();
 let nextLiveTabId = 1;
+let immersiveAccountId = null;
 let mainWindow = null;
 let metricsTimer = null;
 let notice = '';
@@ -50,6 +51,8 @@ function liveBackgroundThrottling() {
 function publicState() {
   return {
     economy: preferences.economy,
+    immersiveAccountId,
+    allParked: accounts.size === MAX_ACCOUNTS && [...accounts.values()].every(acc => acc.parked),
     keepLiveBackground: preferences.keepLiveBackground,
     notice,
     streams: Array.from(liveTabs.values(), tab => ({
@@ -96,6 +99,32 @@ function setKeepLiveBackground(enabled) {
     if (!tab.view.webContents.isDestroyed()) tab.view.webContents.setBackgroundThrottling(liveBackgroundThrottling());
   }
   savePreferences(); sendState();
+}
+// The native game view covers the whole fullscreen client area. Escape or F11
+// is handled BEFORE game input, so the user can always leave immersive mode.
+function exitImmersive() {
+  if (immersiveAccountId === null) return false;
+  immersiveAccountId = null;
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.setFullScreen(false);
+  sendState();
+  return true;
+}
+function handleImmersiveKey(event, input) {
+  if (immersiveAccountId !== null && input.type === 'keyDown' &&
+      (input.key === 'Escape' || input.key === 'F11')) {
+    event.preventDefault();
+    exitImmersive();
+  }
+}
+function setAllParked(parked) {
+  for (const acc of accounts.values()) {
+    acc.parked = parked;
+    if (parked) acc.view.setVisible(false);
+    for (const tab of liveTabs.values()) {
+      if (parked && tab.id === acc.id && tab.view) tab.view.setVisible(false);
+    }
+  }
+  sendState();
 }
 function captureStreamNavigation(ownerId, rawUrl) {
   const stream = parseStreamUrl(rawUrl);
@@ -156,6 +185,7 @@ function createAccount(id) {
   const acc = { id, view, browserSession, muted: preferences.muted[id - 1], status: 'Carregando', parked: false, selectedTab: 'game' };
   accounts.set(id, acc);
   view.webContents.setAudioMuted(acc.muted);
+  view.webContents.on('before-input-event', handleImmersiveKey);
   view.webContents.on('did-start-loading', () => { acc.status = 'Carregando'; sendState(); });
   view.webContents.on('did-finish-load', () => { acc.status = 'Site aberto'; sendState(); });
   view.webContents.on('did-fail-load', (_event, code, _description, _url, isMainFrame) => {
@@ -187,6 +217,7 @@ function createStreamView(tab) {
   view.setVisible(false);
   mainWindow.contentView.addChildView(view);
   view.webContents.setAudioMuted(tab.muted);
+  view.webContents.on('before-input-event', handleImmersiveKey);
   view.webContents.on('did-start-loading', () => {
     if (liveTabs.has(tab.tabId)) { tab.status = 'Carregando'; sendState(); }
   });
@@ -224,10 +255,11 @@ function openStreamTab(id, stream) {
     return false;
   }
   notice = '';
+  if (immersiveAccountId !== null) exitImmersive(); // Opening a live exits game-only fullscreen.
   acc.parked = false;
   const tab = {
     tabId: `live-${nextLiveTabId++}`, id, ...stream,
-    muted: false, status: 'Carregando', view: null
+    muted: true, status: 'Carregando', view: null
   };
   liveTabs.set(tab.tabId, tab);
   acc.selectedTab = tab.tabId;
@@ -344,6 +376,24 @@ function setupIPC() {
     preferences.muted[id - 1] = acc.muted;
     savePreferences(); sendState(); return true;
   });
+  ipcMain.handle('app:park-all', event => {
+    if (!isOurWindow(event) || accounts.size !== MAX_ACCOUNTS || immersiveAccountId !== null) return false;
+    const currentlyAllParked = [...accounts.values()].every(acc => acc.parked);
+    setAllParked(!currentlyAllParked);
+    return true;
+  });
+  ipcMain.handle('app:immersive-enter', (event, id) => {
+    if (!isOurWindow(event) || !validAccountId(id)) return false;
+    const acc = accounts.get(id);
+    if (!acc || !mainWindow || mainWindow.isDestroyed()) return false;
+    immersiveAccountId = id;
+    acc.parked = false;
+    acc.selectedTab = 'game'; // Fullscreen is always the GAME, never a live tab.
+    mainWindow.setFullScreen(true);
+    sendState();
+    return true;
+  });
+  ipcMain.handle('app:immersive-exit', event => isOurWindow(event) && exitImmersive());
   ipcMain.handle('account:park', (event, id) => {
     if (!isOurWindow(event) || !validAccountId(id)) return false;
     const acc = accounts.get(id);
@@ -383,6 +433,11 @@ function createWindow() {
     }
   });
   Menu.setApplicationMenu(null);
+  mainWindow.webContents.on('before-input-event', handleImmersiveKey);
+  mainWindow.on('leave-full-screen', () => {
+    // OS/window-manager exit (e.g. Alt+Enter) must also restore all controls.
+    if (immersiveAccountId !== null) { immersiveAccountId = null; sendState(); }
+  });
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
   mainWindow.once('ready-to-show', () => mainWindow.show());
   mainWindow.webContents.on('did-finish-load', () => {
@@ -399,7 +454,7 @@ function createWindow() {
     for (const popup of authWindows) if (!popup.isDestroyed()) popup.close();
     authWindows.clear();
     for (const acc of accounts.values()) destroyView(acc.view);
-    accounts.clear(); mainWindow = null;
+    accounts.clear(); immersiveAccountId = null; mainWindow = null;
   });
 }
 if (HAS_LOCK) {

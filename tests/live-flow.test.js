@@ -19,7 +19,7 @@ function makeRuntime() {
     isDestroyed() { return this.closed; }
     close() { this.closed = true; }
     setBackgroundThrottling(value) { this.throttling = value; }
-    setAudioMuted() {}
+    setAudioMuted(value) { this.audioMuted = value; }
     setWindowOpenHandler(handler) { this.popupHandler = handler; }
     loadURL() { this.emit('did-finish-load'); return Promise.resolve(); }
     reload() {}
@@ -41,9 +41,12 @@ function makeRuntime() {
       this.webContents = new FakeContents();
       this.contentView = { addChildView() {}, removeChildView() {} };
       this.destroyed = false;
+      this.fullScreen = false;
     }
     loadFile() { Promise.resolve().then(() => this.webContents.emit('did-finish-load')); }
     getContentSize() { return [1540, 920]; }
+    setFullScreen(value) { this.fullScreen = value; this.emit(value ? 'enter-full-screen' : 'leave-full-screen'); }
+    isFullScreen() { return this.fullScreen; }
     isDestroyed() { return this.destroyed; }
     isMinimized() { return false; }
     isVisible() { return true; }
@@ -57,9 +60,10 @@ function makeRuntime() {
     getAppMetrics() { return []; }
   }
   const app = new FakeApp();
+  let mainWindow;
   const context = {
     require: name => name === 'electron'
-      ? { app, BrowserWindow: FakeWindow, WebContentsView: FakeView,
+      ? { app, BrowserWindow: class extends FakeWindow { constructor() { super(); mainWindow = this; } }, WebContentsView: FakeView,
           ipcMain: { handle: (name, handler) => ipc.set(name, handler), on: () => {} },
           session: { fromPartition: id => {
             if (!sessions.has(id)) sessions.set(id, {
@@ -85,7 +89,7 @@ function makeRuntime() {
     console, Buffer, URL
   };
   vm.runInNewContext(source, context);
-  return { ipc, views, sessions };
+  return { ipc, views, sessions, get window() { return mainWindow; } };
 }
 
 test('fluxo real: duas lives na conta 1 continuam abertas após voltar ao JOGO', async () => {
@@ -142,4 +146,79 @@ test('trocar Google na conta 2 remove Google apenas do perfil 2 sem afetar outra
   assert.equal(rt.ipc.get('app:state:get')(event).accounts[1].selectedTab, 'game');
   assert.equal(await handler({ sender: { id: 9999 } }, 2), false, 'blocked unauthorized IPC');
   assert.equal(await handler(event, 5), false, 'blocked invalid account');
+});
+
+
+test('tela cheia usa somente a conta escolhida e sai com Escape sem perder sessões', async () => {
+  const rt = makeRuntime();
+  await new Promise(resolve => setTimeout(resolve, 20));
+  const event = { sender: { id: rt.window.webContents.id } };
+  const enter = rt.ipc.get('app:immersive-enter');
+  const getState = rt.ipc.get('app:state:get');
+  assert.equal(enter(event, 3), true);
+  assert.equal(rt.window.isFullScreen(), true);
+  assert.equal(getState(event).immersiveAccountId, 3);
+  assert.equal(getState(event).accounts[2].selectedTab, 'game');
+  assert.equal(enter({ sender: { id: -1 } }, 2), false, 'rejeita origem externa');
+  let prevented = false;
+  rt.views[2].webContents.emit('before-input-event', {
+    preventDefault() { prevented = true; }
+  }, { type: 'keyDown', key: 'Escape' });
+  assert.equal(prevented, true, 'Escape tem prioridade no jogo');
+  assert.equal(rt.window.isFullScreen(), false);
+  assert.equal(getState(event).immersiveAccountId, null);
+  assert.equal(rt.views[2].webContents.closed, false);
+  assert.equal(enter(event, 1), true);
+  rt.window.setFullScreen(false); // User/OS exited without our IPC.
+  assert.equal(getState(event).immersiveAccountId, null);
+  assert.equal(rt.ipc.get('app:immersive-exit')(event), false, 'fora de tela cheia');
+});
+
+test('ocultar quatro contas ao mesmo tempo e restaurar não encerra sessão/lives', async () => {
+  const rt = makeRuntime();
+  await new Promise(resolve => setTimeout(resolve, 20));
+  const event = { sender: { id: rt.window.webContents.id } };
+  const getState = rt.ipc.get('app:state:get');
+  const toggle = rt.ipc.get('app:park-all');
+  assert.equal(toggle(event), true);
+  assert.equal(getState(event).allParked, true);
+  assert.ok(getState(event).accounts.every(acc => acc.parked));
+  assert.ok(rt.views.slice(0, 4).every(view => view.visible === false));
+  assert.equal(toggle(event), true);
+  assert.equal(getState(event).allParked, false);
+  assert.ok(getState(event).accounts.every(acc => !acc.parked));
+  assert.ok(rt.views.slice(0, 4).every(view => !view.webContents.closed));
+  assert.equal(toggle({ sender: { id: 999 } }), false);
+});
+
+test('cada nova live inicia mutada; só a aba escolhida pode ser desmutada no app', async () => {
+  const rt = makeRuntime();
+  await new Promise(resolve => setTimeout(resolve, 20));
+  const event = { sender: { id: rt.window.webContents.id } };
+  rt.views[0].webContents.popupHandler({ url: 'https://www.twitch.tv/mute_a' });
+  rt.views[0].webContents.popupHandler({ url: 'https://kick.com/mute_b' });
+  await new Promise(resolve => setTimeout(resolve, 20));
+  const state = rt.ipc.get('app:state:get')(event);
+  assert.equal(state.streams.length, 2);
+  assert.ok(state.streams.every(tab => tab.muted));
+  assert.equal(rt.views[4].webContents.audioMuted, true);
+  assert.equal(rt.views[5].webContents.audioMuted, true);
+  assert.equal(rt.ipc.get('app:tab-mute')(event, state.streams[0].tabId), true);
+  assert.equal(rt.views[4].webContents.audioMuted, false);
+  assert.equal(rt.views[5].webContents.audioMuted, true);
+  assert.equal(rt.ipc.get('app:state:get')(event).streams[0].muted, false);
+});
+
+test('abrir live durante jogo em tela cheia retorna automaticamente ao painel', async () => {
+  const rt = makeRuntime();
+  await new Promise(resolve => setTimeout(resolve, 20));
+  const event = { sender: { id: rt.window.webContents.id } };
+  assert.equal(rt.ipc.get('app:immersive-enter')(event, 1), true);
+  rt.views[0].webContents.popupHandler({url:'https://kick.com/canal_live'});
+  await new Promise(resolve => setTimeout(resolve, 20));
+  assert.equal(rt.window.isFullScreen(), false);
+  const state = rt.ipc.get('app:state:get')(event);
+  assert.equal(state.immersiveAccountId, null);
+  assert.equal(state.streams.length, 1);
+  assert.equal(state.accounts[0].selectedTab, state.streams[0].tabId);
 });

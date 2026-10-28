@@ -1,8 +1,8 @@
 {
   "name": "pokedeck4",
   "productName": "PokeDeck 4",
-  "version": "2.4.0",
-  "description": "PokeDeck 4 Premium Eco com 4 contas isoladas, lives persistentes em abas, troca de login Google e instalador Windows",
+  "version": "2.5.0",
+  "description": "PokeDeck 4 Premium Eco com tela cheia de jogo, ocultação das 4 contas, lives mutadas em abas e instalador Windows",
   "main": "src/main.js",
   "author": "Projeto independente",
   "license": "MIT",

@@ -95,7 +95,7 @@ test('cálculo de CPU/RAM só em janela visível', () => {
   assert.match(main, /mainWindow\.isMinimized\(\)/);
 });
 test('instalador NSIS para Windows inclui Electron, atalhos e ícone', () => {
-  assert.equal(pkg.version, '2.4.0');
+  assert.equal(pkg.version, '2.5.0');
   assert.equal(pkg.build.win.icon, 'assets/pokedeck4.ico');
   assert.deepEqual(pkg.build.win.target, ['nsis']);
   assert.equal(pkg.build.nsis.createDesktopShortcut, true);
@@ -115,4 +115,31 @@ test('trocar Google por painel preserva partição persistente e integra a inter
   assert.match(main, /await clearGoogleAuth\(acc\.browserSession\)/);
   assert.match(preload, /resetGoogleLogin/);
   assert.match(renderer, /api\.resetGoogleLogin\(id\)/);
+});
+
+
+test('tela cheia real por conta: somente jogo, Esc/F11 restauram controles', () => {
+  assert.match(main, /ipcMain\.handle\('app:immersive-enter'/);
+  assert.match(main, /mainWindow\.setFullScreen\(true\)/);
+  assert.match(main, /mainWindow\.setFullScreen\(false\)/);
+  assert.match(main, /acc\.selectedTab = 'game'/);
+  assert.match(main, /before-input-event', handleImmersiveKey/);
+  assert.match(main, /input\.key === 'Escape'/);
+  for (let id = 1; id <= 4; id++) assert.ok(html.includes(`data-fullscreen="${id}"`));
+  assert.match(css, /\.immersive-mode \.card-top/);
+  assert.match(css, /\.immersive-mode \.panel-tabs/);
+  assert.match(preload, /enterImmersive/);
+  assert.match(preload, /exitImmersive/);
+});
+test('ocultar quatro contas de uma só vez sem logout', () => {
+  assert.match(html, /id="all-panels-toggle"/);
+  assert.match(main, /ipcMain\.handle\('app:park-all'/);
+  assert.match(main, /function setAllParked\(parked\)/);
+  assert.match(renderer, /currentMode === 'grid' \? api\.toggleParkAll\(\)/);
+  assert.match(preload, /toggleParkAll/);
+});
+test('novas lives começam sem áudio somente no PokeDeck', () => {
+  assert.match(main, /muted: true, status: 'Carregando'/);
+  assert.match(main, /view\.webContents\.setAudioMuted\(tab\.muted\)/);
+  assert.match(renderer, /api\.muteStreamTab\(stream\.tabId\)/);
 });
